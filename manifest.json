@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Claude Chat Notifier",
+  "version": "1.0",
+  "description": "Audio & visual notifications for Claude.ai responses",
+  "permissions": ["windows", "offscreen"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://claude.ai/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/sounds/start.mp3", "assets/sounds/end.mp3"],
+      "matches": ["https://claude.ai/*"]
+    }
+  ],
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  }
+}

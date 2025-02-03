@@ -1,0 +1,58 @@
+name: Build and Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions: write-all
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Install jq
+        uses: dcarbone/install-jq-action@v2
+
+      - name: Update manifest version
+        run: |
+          release_version=${{ github.event.release.tag_name }}
+          jq --arg version "$release_version" '.version = $version' manifest.json > manifest.temp.json
+          mv manifest.temp.json manifest.json
+
+      - name: Build the project
+        run: pnpm build
+
+      - name: Compress build folder
+        run: zip -r claude-notifier.zip manifest.json *.js *.css *.html assets/icons/* assets/sounds/*
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: claude-notifier
+          path: claude-notifier.zip
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: claude-notifier.zip
+          asset_name: claude-notifier.zip
+          asset_content_type: application/zip
